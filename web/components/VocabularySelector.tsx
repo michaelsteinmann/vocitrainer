@@ -14,9 +14,10 @@ interface VocabularyFile {
 
 interface VocabularySelectorProps {
     onSelect: (data: any[]) => void;
+    onEdit: (fileName: string) => void;
 }
 
-export function VocabularySelector({ onSelect }: VocabularySelectorProps) {
+export function VocabularySelector({ onSelect, onEdit }: VocabularySelectorProps) {
     const [files, setFiles] = useState<VocabularyFile[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -27,15 +28,9 @@ export function VocabularySelector({ onSelect }: VocabularySelectorProps) {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch('/data/vocabulary/index.json');
-            if (!res.ok) {
-                if (res.status === 404) {
-                    // Fallback if no index exists yet
-                    setFiles([]);
-                    return;
-                }
-                throw new Error('Failed to load vocabulary index');
-            }
+            // Use the new API route instead of static file
+            const res = await fetch('/api/vocabulary');
+            if (!res.ok) throw new Error('Failed to load vocabulary index');
             const data = await res.json();
             setFiles(data);
         } catch (err) {
@@ -56,7 +51,8 @@ export function VocabularySelector({ onSelect }: VocabularySelectorProps) {
         setLoadingFile(true);
 
         try {
-            const res = await fetch(`/data/vocabulary/${file.fileName}`);
+            // Load from API to ensure fresh data
+            const res = await fetch(`/api/vocabulary/${file.fileName}`);
             if (!res.ok) throw new Error('Failed to load vocabulary file');
             const data = await res.json();
             onSelect(data);
@@ -108,25 +104,23 @@ export function VocabularySelector({ onSelect }: VocabularySelectorProps) {
                 ) : (
                     <div className="grid gap-3">
                         {files.map((file) => (
-                            <button
+                            <div
                                 key={file.fileName}
-                                onClick={() => handleFileClick(file)}
-                                disabled={loadingFile}
                                 className={cn(
-                                    "flex items-center justify-between p-4 rounded-xl border transition-all text-left group",
-                                    selectedFile === file.fileName
-                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500"
-                                        : "border-zinc-200 dark:border-zinc-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm bg-white dark:bg-zinc-900"
+                                    "flex items-center justify-between p-4 rounded-xl border transition-all text-left bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm"
                                 )}
                             >
-                                <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => handleFileClick(file)}
+                                    disabled={loadingFile}
+                                    className="flex-1 flex items-center gap-4 group"
+                                >
                                     <div className={cn(
-                                        "p-2 rounded-lg",
-                                        selectedFile === file.fileName ? "bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-200" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+                                        "p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 group-hover:text-blue-500 transition-colors"
                                     )}>
                                         <Book className="w-5 h-5" />
                                     </div>
-                                    <div>
+                                    <div className="text-left">
                                         <h3 className="font-medium text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                             {file.name}
                                         </h3>
@@ -134,11 +128,26 @@ export function VocabularySelector({ onSelect }: VocabularySelectorProps) {
                                             {file.count} entries • {new Date(file.lastModified).toLocaleDateString()}
                                         </p>
                                     </div>
+                                </button>
+
+                                <div className="flex items-center gap-2 border-l border-zinc-100 dark:border-zinc-800 pl-4 ml-4">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onEdit(file.fileName);
+                                        }}
+                                        className="text-sm font-medium text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                                    >
+                                        Edit
+                                    </button>
                                 </div>
+
                                 {selectedFile === file.fileName && loadingFile && (
-                                    <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-black/50 rounded-xl">
+                                        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                                    </div>
                                 )}
-                            </button>
+                            </div>
                         ))}
                     </div>
                 )}

@@ -3,16 +3,18 @@
 import React, { useState } from 'react';
 import { buildDeck, Card } from '@/lib/trainer';
 import { VocabularySelector } from '@/components/VocabularySelector';
+import { VocabularyEditor } from '@/components/VocabularyEditor';
 import { DeckConfig, DeckConfig as IDeckConfig } from '@/components/DeckConfig';
 import { Flashcard } from '@/components/Flashcard';
 import { Shuffle } from 'lucide-react';
 
 export default function Home() {
-  const [step, setStep] = useState<'select' | 'config' | 'training'>('select');
+  const [step, setStep] = useState<'select' | 'edit' | 'config' | 'training'>('select');
 
   // Data State
   const [rawData, setRawData] = useState<any[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
+  const [editingFile, setEditingFile] = useState<string | null>(null);
 
   // Deck State
   const [deck, setDeck] = useState<Card[]>([]);
@@ -27,6 +29,11 @@ export default function Home() {
     } else {
       alert("File seems empty or invalid.");
     }
+  };
+
+  const handleEditStart = (fileName: string) => {
+    setEditingFile(fileName);
+    setStep('edit');
   };
 
   const handleConfigConfirm = (config: IDeckConfig) => {
@@ -70,7 +77,7 @@ export default function Home() {
     <main className="min-h-screen bg-white dark:bg-black font-sans text-zinc-900 dark:text-zinc-100 selection:bg-blue-100 dark:selection:bg-blue-900">
       <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16">
 
-        {step !== 'training' && (
+        {step !== 'training' && step !== 'edit' && (
           <h1 className="text-4xl font-bold text-center mb-12 tracking-tight">Vocitrainer</h1>
         )}
 
@@ -78,6 +85,19 @@ export default function Home() {
           <div className="animate-in fade-in zoom-in duration-500">
             <VocabularySelector
               onSelect={handleDataLoaded}
+              onEdit={handleEditStart}
+            />
+          </div>
+        )}
+
+        {step === 'edit' && editingFile && (
+          <div className="max-w-6xl mx-auto">
+            <VocabularyEditor
+              fileName={editingFile}
+              onBack={() => {
+                setEditingFile(null);
+                setStep('select');
+              }}
             />
           </div>
         )}
