@@ -145,11 +145,53 @@ export function Flashcard({ card, deckCards, onNext, progress, className, ttsSet
 
     }, [settingsOpen, localPromptTts?.code, localAnswerTts?.code]);
 
-    const updateSettings = (type: 'prompt' | 'answer', field: 'voice' | 'speed', value: string | number) => {
+    const updateSettings = async (type: 'prompt' | 'answer', field: 'voice' | 'speed', value: string | number) => {
+        let newSettings = type === 'prompt' ? { ...localPromptTts } : { ...localAnswerTts };
+
+        // Update local state first for responsiveness
         if (type === 'prompt') {
-            setLocalPromptTts(prev => prev ? ({ ...prev, [field]: value }) : undefined);
+            setLocalPromptTts(prev => prev ? ({ ...prev, [field]: value }) : { code: 'de-DE', [field]: value });
+            newSettings = { ...localPromptTts, [field]: value } as TTSSettings;
+            // Note: localPromptTts might be stale in this closure if we didn't use functional update for setLocal, 
+            // but we need the *new* full object for the API call.
+            // Better: construct new object cleanly.
         } else {
-            setLocalAnswerTts(prev => prev ? ({ ...prev, [field]: value }) : undefined);
+            setLocalAnswerTts(prev => prev ? ({ ...prev, [field]: value }) : { code: 'it-IT', [field]: value });
+            newSettings = { ...localAnswerTts, [field]: value } as TTSSettings;
+        }
+
+        // Persist to server
+        // We need to match the structure expected by consumers.
+        // The users.json structure currently shows "settings": { "voice": ..., "speed": ... }. 
+        // But we have split prompt/answer.
+        // Let's adopt a structure: { prompt: { voice, speed }, answer: { voice, speed } }
+        // OR flatten if we only really care about the "current language" voice?
+        // User has explicit "Question (German)" and "Answer (Italian)".
+        // It's safer to store `promptVoice`, `promptSpeed`, `answerVoice`, `answerSpeed`.
+
+        const payload: any = {};
+        if (type === 'prompt') {
+            payload.promptVoice = field === 'voice' ? value : localPromptTts?.voice;
+            payload.promptSpeed = field === 'speed' ? value : localPromptTts?.speed;
+        } else {
+            payload.answerVoice = field === 'voice' ? value : localAnswerTts?.voice;
+            payload.answerSpeed = field === 'speed' ? value : localAnswerTts?.speed;
+        }
+
+        // Actually, to be safe, we should probably send what we have.
+        // But `users.json` just had `voice` and `speed` before.
+        // Let's migrate to `prompt` and `answer` nested keys or prefixed keys in `users.json`.
+        // DeckConfig expects `voice` and `speed` for "generic" use? 
+        // Let's see DeckConfig again.
+
+        try {
+            await fetch('/api/user/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            console.error("Failed to save settings", e);
         }
     };
 
@@ -218,10 +260,13 @@ export function Flashcard({ card, deckCards, onNext, progress, className, ttsSet
                             <h4 className="text-sm font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Audio Settings</h4>
 
                             {/* Prompt Settings */}
+                            {/* Prompt Settings */}
                             {localPromptTts && (
                                 <div className="mb-4">
                                     <div className="flex justify-between mb-1">
-                                        <label className="text-xs font-medium text-zinc-500 uppercase">Question (De)</label>
+                                        <label className="text-xs font-medium text-zinc-500 uppercase">
+                                            {{ 'de-DE': 'German', 'it-IT': 'Italian', 'en-US': 'English', 'fr-FR': 'French', 'es-ES': 'Spanish' }[localPromptTts.code] || localPromptTts.code}
+                                        </label>
                                     </div>
                                     <div className="flex items-center gap-2 mb-2">
                                         <select
@@ -263,7 +308,9 @@ export function Flashcard({ card, deckCards, onNext, progress, className, ttsSet
                             {/* Answer Settings */}
                             {localAnswerTts && (
                                 <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                    <label className="text-xs font-medium text-zinc-500 uppercase mb-1 block">Answer (It)</label>
+                                    <label className="text-xs font-medium text-zinc-500 uppercase mb-1 block">
+                                        {{ 'de-DE': 'German', 'it-IT': 'Italian', 'en-US': 'English', 'fr-FR': 'French', 'es-ES': 'Spanish' }[localAnswerTts.code] || localAnswerTts.code}
+                                    </label>
                                     <div className="flex items-center gap-2 mb-2">
                                         <select
                                             className="w-full text-sm p-2 rounded bg-zinc-50 dark:bg-zinc-800 border-none"

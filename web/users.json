@@ -4,7 +4,11 @@
         "password": "monopoli",
         "settings": {
             "voice": "it-IT-Neural2-A",
-            "speed": 1.0
+            "speed": 1,
+            "answerVoice": "de-DE-Chirp3-HD-Enceladus",
+            "answerSpeed": 1,
+            "promptVoice": "it-IT-Chirp3-HD-Achird",
+            "promptSpeed": 1
         }
     },
     {
@@ -12,7 +16,11 @@
         "password": "uetikon",
         "settings": {
             "voice": "it-IT-Neural2-A",
-            "speed": 1.0
+            "speed": 1,
+            "answerVoice": "de-DE-Chirp3-HD-Enceladus",
+            "answerSpeed": 1,
+            "promptVoice": "it-IT-Chirp3-HD-Achird",
+            "promptSpeed": 1
         }
     }
 ]

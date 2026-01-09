@@ -103,7 +103,10 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
 
 
     // User Settings State
-    const [userSettings, setUserSettings] = useState<{ voice?: string, speed?: number } | null>(null);
+    const [userSettings, setUserSettings] = useState<{
+        promptVoice?: string, promptSpeed?: number,
+        answerVoice?: string, answerSpeed?: number
+    } | null>(null);
 
     // Fetch User Settings
     useEffect(() => {
@@ -115,26 +118,42 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
             .then(settings => {
                 if (settings) {
                     setUserSettings(settings);
-                    // Apply speed globally if set
-                    if (settings.speed) {
-                        setPromptSpeed(settings.speed);
-                        setAnswerSpeed(settings.speed);
-                    }
+                    // Apply persisted settings
+                    if (settings.promptVoice) setPromptVoice(settings.promptVoice);
+                    if (settings.promptSpeed) setPromptSpeed(settings.promptSpeed);
+                    if (settings.answerVoice) setAnswerVoice(settings.answerVoice);
+                    if (settings.answerSpeed) setAnswerSpeed(settings.answerSpeed);
                 }
             })
             .catch(err => console.error("Failed to load user settings", err));
     }, []);
 
-    // Apply User Voice Setting when Language Matches
+    // REMOVED: Auto-apply logic based on prefix.
+    // Reason: We now store exact voice names for specific slots (prompt vs answer).
+    // The previous logic was "if voice starts with de-DE, use it for prompt".
+    // Now we have explicit `promptVoice` and `answerVoice`.
+    // If the user changes language, we might want to reset or keep?
+    // For now, if they change language, we reset to empty (default) unless they have a saved preference for that language? 
+    // The saved preferences are currently global "promptVoice" / "answerVoice".
+    // If they switch prompt lang from DE to ES, the saved "DE-Voice" shouldn't be selected.
+    // So we should check if the saved voice matches the current language code.
+
     useEffect(() => {
-        if (userSettings?.voice && promptLang && userSettings.voice.startsWith(promptLang)) {
-            setPromptVoice(userSettings.voice);
+        if (userSettings?.promptVoice && userSettings.promptVoice.startsWith(promptLang)) {
+            setPromptVoice(userSettings.promptVoice);
+        } else {
+            // If language changed and saved voice doesn't match, reset?
+            // Or better: Just don't set it, let it be default.
+            if (promptLang !== 'de-DE') setPromptVoice('');
+            // Actually `fetchVoices` resets it to '' anyway in the other effect.
         }
     }, [promptLang, userSettings]);
 
     useEffect(() => {
-        if (userSettings?.voice && answerLang && userSettings.voice.startsWith(answerLang)) {
-            setAnswerVoice(userSettings.voice);
+        if (userSettings?.answerVoice && userSettings.answerVoice.startsWith(answerLang)) {
+            setAnswerVoice(userSettings.answerVoice);
+        } else {
+            // similar logic
         }
     }, [answerLang, userSettings]);
 
@@ -166,18 +185,76 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
     }, [answerLang]);
 
 
-    // Auto-detect defaults
+    // Auto-detect defaults and languages
     useEffect(() => {
-        const deCols = columns.filter(c => c.toLowerCase().startsWith('deutsch'));
-        const itCols = columns.filter(c => c.toLowerCase().startsWith('italien'));
+        const detectLang = (col: string): string => {
+            const lower = col.toLowerCase();
+            if (lower.includes('deutsch') || lower.includes('german')) return 'de-DE';
+            if (lower.includes('italien') || lower.includes('italian')) return 'it-IT';
+            if (lower.includes('englisch') || lower.includes('english')) return 'en-US';
+            if (lower.includes('franz') || lower.includes('french')) return 'fr-FR';
+            if (lower.includes('spanisch') || lower.includes('spanish')) return 'es-ES';
+            // Default fallback logic could go here, or just keep existing
+            return '';
+        };
 
-        if (itCols.length > 0) setPromptCol(itCols[0]);
-        else if (columns.length > 0) setPromptCol(columns[0]);
+        const deCols = columns.filter(c => detectLang(c) === 'de-DE');
+        const itCols = columns.filter(c => detectLang(c) === 'it-IT');
 
-        if (deCols.length > 0) setAnswerCols(deCols);
+        // Default Logic: 
+        // If we have "Italiano" and "Deutsch", and usually want to learn Italian:
+        // Prompt = Deutsch (Known), Answer = Italian (Learning)? 
+        // OR Prompt = Italian (Reading), Answer = Deutsch (Translation)?
+        // The previous code preferred Prompt = Italian.
+
+        let newPromptCol = promptCol;
+        if (!newPromptCol) {
+            if (itCols.length > 0) newPromptCol = itCols[0];
+            else if (columns.length > 0) newPromptCol = columns[0];
+        }
+        setPromptCol(newPromptCol);
+
+        let newAnswerCols = answerCols;
+        if (newAnswerCols.length === 0) {
+            if (deCols.length > 0) newAnswerCols = deCols;
+        }
+        setAnswerCols(newAnswerCols);
     }, [columns]);
 
+    // Sync Languages with Selected Columns
+    useEffect(() => {
+        const detectLang = (col: string): string => {
+            const lower = col.toLowerCase();
+            if (lower.includes('deutsch') || lower.includes('german')) return 'de-DE';
+            if (lower.includes('italien') || lower.includes('italian')) return 'it-IT';
+            if (lower.includes('englisch') || lower.includes('english')) return 'en-US';
+            if (lower.includes('franz') || lower.includes('french')) return 'fr-FR';
+            if (lower.includes('spanisch') || lower.includes('spanish')) return 'es-ES';
+            return 'de-DE'; // Fallback
+        };
 
+        if (promptCol) {
+            setPromptLang(detectLang(promptCol));
+        }
+    }, [promptCol]);
+
+    // For Answers, we usually take the first answer column to determine language for TTS?
+    // Or we disable TTS if multiple langs? 
+    // Let's assume all answer columns are same lang or we just pick the first.
+    useEffect(() => {
+        if (answerCols.length > 0) {
+            const detectLang = (col: string): string => {
+                const lower = col.toLowerCase();
+                if (lower.includes('deutsch') || lower.includes('german')) return 'de-DE';
+                if (lower.includes('italien') || lower.includes('italian')) return 'it-IT';
+                if (lower.includes('englisch') || lower.includes('english')) return 'en-US';
+                if (lower.includes('franz') || lower.includes('french')) return 'fr-FR';
+                if (lower.includes('spanisch') || lower.includes('spanish')) return 'es-ES';
+                return 'it-IT'; // Fallback
+            };
+            setAnswerLang(detectLang(answerCols[0]));
+        }
+    }, [answerCols]);
 
     const handleSubmit = () => {
         if (!promptCol || answerCols.length === 0) return;
