@@ -18,10 +18,21 @@ export interface DeckConfig {
         niveaus: string[];
         frequency: string[];
     };
+    languages: {
+        prompt: string;
+        answer: string;
+    };
 }
 
 const NIVEAUS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const FREQUENCIES = ['1', '2', '3', '4', '5'];
+const SUPPORTED_LANGS = [
+    { code: 'de-DE', name: 'German' },
+    { code: 'it-IT', name: 'Italian' },
+    { code: 'en-US', name: 'English' },
+    { code: 'fr-FR', name: 'French' },
+    { code: 'es-ES', name: 'Spanish' },
+];
 
 export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
     const [promptCol, setPromptCol] = useState<string>(columns[0] || '');
@@ -29,6 +40,10 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
     const [reverse, setReverse] = useState(false);
     const [selectedNiveaus, setSelectedNiveaus] = useState<string[]>(NIVEAUS);
     const [selectedFreqs, setSelectedFreqs] = useState<string[]>(FREQUENCIES);
+
+    // Default languages
+    const [promptLang, setPromptLang] = useState('de-DE');
+    const [answerLang, setAnswerLang] = useState('it-IT');
 
     // Auto-detect defaults
     useEffect(() => {
@@ -41,6 +56,19 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
         if (deCols.length > 0) setAnswerCols(deCols);
     }, [columns]);
 
+    // Auto-detect languages based on column names
+    useEffect(() => {
+        if (promptCol.toLowerCase().includes('deutsch')) setPromptLang('de-DE');
+        else if (promptCol.toLowerCase().includes('italien')) setPromptLang('it-IT');
+
+        // Check first answer col for hint
+        if (answerCols.length > 0) {
+            const ac = answerCols[0].toLowerCase();
+            if (ac.includes('deutsch')) setAnswerLang('de-DE');
+            else if (ac.includes('italien')) setAnswerLang('it-IT');
+        }
+    }, [promptCol, answerCols]);
+
     const handleSubmit = () => {
         if (!promptCol || answerCols.length === 0) return;
         onConfirm({
@@ -50,6 +78,10 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
             filters: {
                 niveaus: selectedNiveaus,
                 frequency: selectedFreqs
+            },
+            languages: {
+                prompt: promptLang,
+                answer: answerLang
             }
         });
     };
@@ -98,6 +130,20 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
                                     <option key={c} value={c}>{c}</option>
                                 ))}
                             </select>
+
+                            {/* Language Selector for Prompt */}
+                            <div className="mt-2 flex items-center gap-2">
+                                <label className="text-xs text-zinc-500">Audio Language:</label>
+                                <select
+                                    value={promptLang}
+                                    onChange={(e) => setPromptLang(e.target.value)}
+                                    className="p-1 rounded border border-zinc-200 dark:border-zinc-700 text-sm bg-transparent"
+                                >
+                                    {SUPPORTED_LANGS.map(l => (
+                                        <option key={l.code} value={l.code}>{l.name}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         <div className="flex justify-center py-2">
@@ -136,6 +182,20 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
                                         <span className="text-sm">{col}</span>
                                     </div>
                                 ))}
+                            </div>
+
+                            {/* Language Selector for Answer */}
+                            <div className="mt-2 flex items-center gap-2">
+                                <label className="text-xs text-zinc-500">Audio Language:</label>
+                                <select
+                                    value={answerLang}
+                                    onChange={(e) => setAnswerLang(e.target.value)}
+                                    className="p-1 rounded border border-zinc-200 dark:border-zinc-700 text-sm bg-transparent"
+                                >
+                                    {SUPPORTED_LANGS.map(l => (
+                                        <option key={l.code} value={l.code}>{l.name}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     </div>

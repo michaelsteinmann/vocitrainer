@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, checkAnswer, AnswerResult, normalizeAnswer } from '@/lib/trainer';
 import { FeedbackDisplay } from './FeedbackDisplay';
-import { Send, ArrowRight } from 'lucide-react';
+import { Send, ArrowRight, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FlashcardProps {
@@ -13,11 +13,13 @@ interface FlashcardProps {
     // Stats (optional display)
     progress?: string;
     className?: string;
+    languageCode?: string;
 }
 
-export function Flashcard({ card, deckCards, onNext, progress, className }: FlashcardProps) {
+export function Flashcard({ card, deckCards, onNext, progress, className, languageCode }: FlashcardProps) {
     const [input, setInput] = useState('');
     const [result, setResult] = useState<AnswerResult | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Focus input on mount and when card changes
@@ -59,7 +61,36 @@ export function Flashcard({ card, deckCards, onNext, progress, className }: Flas
             window.addEventListener('keydown', handleKeyDown);
         }
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [result, onNext]); // Dependencies must be precise
+    }, [result, onNext]);
+
+    const playAudio = async () => {
+        if (!languageCode || isPlaying) return;
+
+        try {
+            setIsPlaying(true);
+            const res = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: card.prompt,
+                    languageCode: languageCode
+                })
+            });
+
+            const data = await res.json();
+            if (data.audioContent) {
+                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+                audio.onended = () => setIsPlaying(false);
+                audio.onerror = () => setIsPlaying(false);
+                await audio.play();
+            } else {
+                setIsPlaying(false);
+            }
+        } catch (error) {
+            console.error(error);
+            setIsPlaying(false);
+        }
+    };
 
     return (
         <div className={cn("w-full max-w-4xl mx-auto flex flex-col min-h-[60vh]", className)}>
@@ -76,14 +107,27 @@ export function Flashcard({ card, deckCards, onNext, progress, className }: Flas
                 {/* Prompt */}
                 <div className="w-full text-center space-y-4 mb-16">
                     <div className="text-zinc-500 text-lg uppercase tracking-wider font-medium">To Translate</div>
-                    <h1 className="text-5xl md:text-7xl font-bold text-zinc-900 dark:text-zinc-100 break-words leading-tight">
-                        {card.prompt}
-                        {card.pos_code && (
-                            <span className="text-2xl md:text-3xl text-zinc-400 font-normal ml-3 align-top">
-                                [{card.pos_code}]
-                            </span>
+                    <div className="flex items-center justify-center gap-4">
+                        <h1 className="text-5xl md:text-7xl font-bold text-zinc-900 dark:text-zinc-100 break-words leading-tight">
+                            {card.prompt}
+                            {card.pos_code && (
+                                <span className="text-2xl md:text-3xl text-zinc-400 font-normal ml-3 align-top">
+                                    [{card.pos_code}]
+                                </span>
+                            )}
+                        </h1>
+                        {languageCode && (
+                            <button
+                                onClick={playAudio}
+                                disabled={isPlaying}
+                                className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50"
+                                title="Play Audio"
+                                type="button"
+                            >
+                                <Volume2 className={cn("w-8 h-8", isPlaying && "animate-pulse text-blue-500")} />
+                            </button>
                         )}
-                    </h1>
+                    </div>
                 </div>
 
                 {/* Interaction Area */}
