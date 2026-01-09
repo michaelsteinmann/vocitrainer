@@ -66,7 +66,7 @@ export function Flashcard({ card, deckCards, onNext, progress, className }: Flas
 
             {/* Top Bar: Progress & Title */}
             <div className="flex justify-between items-center text-sm text-zinc-400 mb-12">
-                <div className="font-medium tracking-wide">VOCITRAINER WEB</div>
+                <div className="font-medium tracking-wide">VOCITRAINER</div>
                 <div>{progress}</div>
             </div>
 

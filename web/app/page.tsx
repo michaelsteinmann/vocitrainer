@@ -78,7 +78,7 @@ export default function Home() {
 
         {step === 'upload' && (
           <div className="max-w-2xl mx-auto animate-in fade-in zoom-in duration-500">
-            <h1 className="text-4xl font-bold text-center mb-12 tracking-tight">Vocitrainer Web</h1>
+            <h1 className="text-4xl font-bold text-center mb-12 tracking-tight">Vocitrainer</h1>
             <FileUpload onFileSelect={handleFileSelect} />
           </div>
         )}
