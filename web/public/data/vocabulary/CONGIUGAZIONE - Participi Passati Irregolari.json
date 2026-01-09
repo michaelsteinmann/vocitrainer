@@ -1,0 +1,338 @@
+[
+  {
+    "Infinitiv": "aprire",
+    "Partizip Perfekt": "aperto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho aperto la finestra.",
+    "Erläuterung": "öffnen"
+  },
+  {
+    "Infinitiv": "bere",
+    "Partizip Perfekt": "bevuto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho bevuto un caffè.",
+    "Erläuterung": "trinken"
+  },
+  {
+    "Infinitiv": "chiedere",
+    "Partizip Perfekt": "chiesto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho chiesto un’informazione.",
+    "Erläuterung": "fragen / bitten"
+  },
+  {
+    "Infinitiv": "chiudere",
+    "Partizip Perfekt": "chiuso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho chiuso la porta.",
+    "Erläuterung": "schließen"
+  },
+  {
+    "Infinitiv": "conoscere",
+    "Partizip Perfekt": "conosciuto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho conosciuto una persona nuova.",
+    "Erläuterung": "kennen / kennenlernen"
+  },
+  {
+    "Infinitiv": "correre",
+    "Partizip Perfekt": "corso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho corso per due chilometri.",
+    "Erläuterung": "laufen / rennen"
+  },
+  {
+    "Infinitiv": "decidere",
+    "Partizip Perfekt": "deciso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho deciso di restare a casa.",
+    "Erläuterung": "entscheiden"
+  },
+  {
+    "Infinitiv": "dire",
+    "Partizip Perfekt": "detto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho detto la verità.",
+    "Erläuterung": "sagen"
+  },
+  {
+    "Infinitiv": "fare",
+    "Partizip Perfekt": "fatto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho fatto i compiti.",
+    "Erläuterung": "machen / tun"
+  },
+  {
+    "Infinitiv": "leggere",
+    "Partizip Perfekt": "letto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho letto un libro interessante.",
+    "Erläuterung": "lesen"
+  },
+  {
+    "Infinitiv": "mettere",
+    "Partizip Perfekt": "messo",
+    "Beispielsatz in der Fremdsprache": "avere – Ho messo la giacca sull’attaccapanni.",
+    "Erläuterung": "setzen, stellen, legen"
+  },
+  {
+    "Infinitiv": "morire",
+    "Partizip Perfekt": "morto",
+    "Beispielsatz in der Fremdsprache": "essere – È morto il mio cane.",
+    "Erläuterung": "sterben"
+  },
+  {
+    "Infinitiv": "nascere",
+    "Partizip Perfekt": "nato",
+    "Beispielsatz in der Fremdsprache": "essere – Sono nato in Svizzera.",
+    "Erläuterung": "geboren werden"
+  },
+  {
+    "Infinitiv": "offrire",
+    "Partizip Perfekt": "offerto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho offerto un caffè a Maria.",
+    "Erläuterung": "anbieten"
+  },
+  {
+    "Infinitiv": "perdere",
+    "Partizip Perfekt": "perso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho perso le chiavi.",
+    "Erläuterung": "verlieren"
+  },
+  {
+    "Infinitiv": "piacere",
+    "Partizip Perfekt": "piaciuto",
+    "Beispielsatz in der Fremdsprache": "essere – Mi è piaciuto il film.",
+    "Erläuterung": "gefallen"
+  },
+  {
+    "Infinitiv": "piangere",
+    "Partizip Perfekt": "pianto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho pianto tutta la notte.",
+    "Erläuterung": "weinen"
+  },
+  {
+    "Infinitiv": "prendere",
+    "Partizip Perfekt": "preso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho preso l’autobus.",
+    "Erläuterung": "nehmen"
+  },
+  {
+    "Infinitiv": "ridere",
+    "Partizip Perfekt": "riso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho riso molto al cinema.",
+    "Erläuterung": "lachen"
+  },
+  {
+    "Infinitiv": "rimanere",
+    "Partizip Perfekt": "rimasto",
+    "Beispielsatz in der Fremdsprache": "essere – Sono rimasto a casa.",
+    "Erläuterung": "bleiben"
+  },
+  {
+    "Infinitiv": "rispondere",
+    "Partizip Perfekt": "risposto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho risposto al professore.",
+    "Erläuterung": "antworten"
+  },
+  {
+    "Infinitiv": "rompere",
+    "Partizip Perfekt": "rotto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho rotto il bicchiere.",
+    "Erläuterung": "zerbrechen / kaputtmachen"
+  },
+  {
+    "Infinitiv": "scegliere",
+    "Partizip Perfekt": "scelto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho scelto un gelato alla fragola.",
+    "Erläuterung": "wählen"
+  },
+  {
+    "Infinitiv": "scrivere",
+    "Partizip Perfekt": "scritto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho scritto una lettera.",
+    "Erläuterung": "schreiben"
+  },
+  {
+    "Infinitiv": "spegnere",
+    "Partizip Perfekt": "spento",
+    "Beispielsatz in der Fremdsprache": "avere – Ho spento la luce.",
+    "Erläuterung": "ausschalten / ausmachen"
+  },
+  {
+    "Infinitiv": "spendere",
+    "Partizip Perfekt": "speso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho speso troppi soldi.",
+    "Erläuterung": "ausgeben"
+  },
+  {
+    "Infinitiv": "succedere",
+    "Partizip Perfekt": "successo",
+    "Beispielsatz in der Fremdsprache": "essere – È successo un incidente.",
+    "Erläuterung": "geschehen / passieren"
+  },
+  {
+    "Infinitiv": "tradurre",
+    "Partizip Perfekt": "tradotto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho tradotto il testo in inglese.",
+    "Erläuterung": "übersetzen"
+  },
+  {
+    "Infinitiv": "vedere",
+    "Partizip Perfekt": "visto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho visto un bel film.",
+    "Erläuterung": "sehen"
+  },
+  {
+    "Infinitiv": "venire",
+    "Partizip Perfekt": "venuto",
+    "Beispielsatz in der Fremdsprache": "essere – Sono venuto al concerto.",
+    "Erläuterung": "kommen"
+  },
+  {
+    "Infinitiv": "vivere",
+    "Partizip Perfekt": "vissuto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho vissuto a Roma per cinque anni.",
+    "Erläuterung": "leben"
+  },
+  {
+    "Infinitiv": "volere",
+    "Partizip Perfekt": "voluto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho voluto provare quel piatto.",
+    "Erläuterung": "wollen"
+  },
+  {
+    "Infinitiv": "accendere",
+    "Partizip Perfekt": "acceso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho acceso la TV.",
+    "Erläuterung": "einschalten / anzünden"
+  },
+  {
+    "Infinitiv": "aggiungere",
+    "Partizip Perfekt": "aggiunto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho aggiunto zucchero al caffè.",
+    "Erläuterung": "hinzufügen"
+  },
+  {
+    "Infinitiv": "aprire",
+    "Partizip Perfekt": "aperto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho aperto la finestra.",
+    "Erläuterung": "öffnen"
+  },
+  {
+    "Infinitiv": "cogliere",
+    "Partizip Perfekt": "colto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho colto i fiori dal giardino.",
+    "Erläuterung": "pflücken / ergreifen"
+  },
+  {
+    "Infinitiv": "coprire",
+    "Partizip Perfekt": "coperto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho coperto il bambino con la coperta.",
+    "Erläuterung": "bedecken"
+  },
+  {
+    "Infinitiv": "correre",
+    "Partizip Perfekt": "corso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho corso in spiaggia.",
+    "Erläuterung": "laufen / rennen"
+  },
+  {
+    "Infinitiv": "cuocere",
+    "Partizip Perfekt": "cotto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho cotto la pasta per dieci minuti.",
+    "Erläuterung": "kochen / garen"
+  },
+  {
+    "Infinitiv": "discutere",
+    "Partizip Perfekt": "discusso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho discusso con un amico.",
+    "Erläuterung": "diskutieren / besprechen"
+  },
+  {
+    "Infinitiv": "esprimere",
+    "Partizip Perfekt": "espresso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho espresso la mia opinione.",
+    "Erläuterung": "ausdrücken"
+  },
+  {
+    "Infinitiv": "giungere",
+    "Partizip Perfekt": "giunto",
+    "Beispielsatz in der Fremdsprache": "essere – Sono giunto in ritardo.",
+    "Erläuterung": "ankommen / gelangen"
+  },
+  {
+    "Infinitiv": "offendere",
+    "Partizip Perfekt": "offeso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho offeso un collega senza volerlo.",
+    "Erläuterung": "beleidigen"
+  },
+  {
+    "Infinitiv": "permettere",
+    "Partizip Perfekt": "permesso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho permesso a Luca di uscire.",
+    "Erläuterung": "erlauben"
+  },
+  {
+    "Infinitiv": "promettere",
+    "Partizip Perfekt": "promesso",
+    "Beispielsatz in der Fremdsprache": "avere – Ho promesso di studiare di più.",
+    "Erläuterung": "versprechen"
+  },
+  {
+    "Infinitiv": "ridurre",
+    "Partizip Perfekt": "ridotto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho ridotto le spese.",
+    "Erläuterung": "reduzieren / verringern"
+  },
+  {
+    "Infinitiv": "risolvere",
+    "Partizip Perfekt": "risolto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho risolto l’esercizio di matematica.",
+    "Erläuterung": "lösen"
+  },
+  {
+    "Infinitiv": "rompere",
+    "Partizip Perfekt": "rotto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho rotto il telefono.",
+    "Erläuterung": "zerbrechen / kaputtmachen"
+  },
+  {
+    "Infinitiv": "scegliere",
+    "Partizip Perfekt": "scelto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho scelto di partire subito.",
+    "Erläuterung": "wählen"
+  },
+  {
+    "Infinitiv": "soffrire",
+    "Partizip Perfekt": "sofferto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho sofferto molto per quella perdita.",
+    "Erläuterung": "leiden"
+  },
+  {
+    "Infinitiv": "succedere",
+    "Partizip Perfekt": "successo",
+    "Beispielsatz in der Fremdsprache": "essere – È successo un miracolo.",
+    "Erläuterung": "geschehen / passieren"
+  },
+  {
+    "Infinitiv": "tenere",
+    "Partizip Perfekt": "tenuto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho tenuto il segreto.",
+    "Erläuterung": "halten / behalten"
+  },
+  {
+    "Infinitiv": "tradurre",
+    "Partizip Perfekt": "tradotto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho tradotto il romanzo.",
+    "Erläuterung": "übersetzen"
+  },
+  {
+    "Infinitiv": "trarre",
+    "Partizip Perfekt": "tratto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho tratto una conclusione.",
+    "Erläuterung": "ziehen / schöpfen"
+  },
+  {
+    "Infinitiv": "vincere",
+    "Partizip Perfekt": "vinto",
+    "Beispielsatz in der Fremdsprache": "avere – Ho vinto la partita.",
+    "Erläuterung": "gewinnen"
+  },
+  {
+    "Infinitiv": "assumersi",
+    "Partizip Perfekt": "assunto",
+    "Beispielsatz in der Fremdsprache": "essere – Mi sono assunto ogni responsibilità.",
+    "Erläuterung": "übernehmen / tragen / verantworten / auf sich nehmen"
+  }
+]

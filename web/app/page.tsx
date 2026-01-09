@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { parseExcelFile, buildDeck, Card } from '@/lib/trainer';
-import { FileUpload } from '@/components/FileUpload';
+import { buildDeck, Card } from '@/lib/trainer';
+import { VocabularySelector } from '@/components/VocabularySelector';
 import { DeckConfig, DeckConfig as IDeckConfig } from '@/components/DeckConfig';
 import { Flashcard } from '@/components/Flashcard';
 import { Shuffle } from 'lucide-react';
 
 export default function Home() {
-  const [step, setStep] = useState<'upload' | 'config' | 'training'>('upload');
+  const [step, setStep] = useState<'select' | 'config' | 'training'>('select');
 
   // Data State
   const [rawData, setRawData] = useState<any[]>([]);
@@ -19,19 +19,13 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Handlers
-  const handleFileSelect = async (file: File) => {
-    try {
-      const data = await parseExcelFile(file);
-      if (data.length > 0) {
-        setRawData(data);
-        setColumns(Object.keys(data[0]));
-        setStep('config');
-      } else {
-        alert("File seems empty or invalid.");
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Error parsing file.");
+  const handleDataLoaded = (data: any[]) => {
+    if (data.length > 0) {
+      setRawData(data);
+      setColumns(Object.keys(data[0]));
+      setStep('config');
+    } else {
+      alert("File seems empty or invalid.");
     }
   };
 
@@ -67,7 +61,7 @@ export default function Home() {
         setDeck(prev => [...prev].sort(() => Math.random() - 0.5));
         setCurrentIndex(0);
       } else {
-        setStep('upload');
+        setStep('select');
       }
     }
   };
@@ -76,28 +70,53 @@ export default function Home() {
     <main className="min-h-screen bg-white dark:bg-black font-sans text-zinc-900 dark:text-zinc-100 selection:bg-blue-100 dark:selection:bg-blue-900">
       <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16">
 
-        {step === 'upload' && (
-          <div className="max-w-2xl mx-auto animate-in fade-in zoom-in duration-500">
-            <h1 className="text-4xl font-bold text-center mb-12 tracking-tight">Vocitrainer</h1>
-            <FileUpload onFileSelect={handleFileSelect} />
+        {step !== 'training' && (
+          <h1 className="text-4xl font-bold text-center mb-12 tracking-tight">Vocitrainer</h1>
+        )}
+
+        {step === 'select' && (
+          <div className="animate-in fade-in zoom-in duration-500">
+            <VocabularySelector
+              onSelect={handleDataLoaded}
+            />
           </div>
         )}
 
         {step === 'config' && (
-          <DeckConfig
-            columns={columns}
-            totalRows={rawData.length}
-            onConfirm={handleConfigConfirm}
-          />
+          <div className="relative">
+            <button
+              onClick={() => setStep('select')}
+              className="absolute top-0 left-0 -mt-12 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 underline decoration-zinc-300 underline-offset-4 flex items-center gap-1"
+            >
+              &larr; Back to Selection
+            </button>
+            <DeckConfig
+              columns={columns}
+              totalRows={rawData.length}
+              onConfirm={handleConfigConfirm}
+            />
+          </div>
         )}
 
         {step === 'training' && deck.length > 0 && (
-          <Flashcard
-            card={deck[currentIndex]}
-            deckCards={deck}
-            onNext={handleNextCard}
-            progress={`${currentIndex + 1} / ${deck.length}`}
-          />
+          <div className="relative">
+            <button
+              onClick={() => {
+                if (confirm('End training session?')) {
+                  setStep('select');
+                }
+              }}
+              className="absolute top-0 left-0 -mt-16 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 underline decoration-zinc-300 underline-offset-4"
+            >
+              &larr; End Session
+            </button>
+            <Flashcard
+              card={deck[currentIndex]}
+              deckCards={deck}
+              onNext={handleNextCard}
+              progress={`${currentIndex + 1} / ${deck.length}`}
+            />
+          </div>
         )}
 
       </div>
