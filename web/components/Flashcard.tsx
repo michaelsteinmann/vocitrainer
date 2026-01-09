@@ -6,6 +6,12 @@ import { FeedbackDisplay } from './FeedbackDisplay';
 import { Send, ArrowRight, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface TTSSettings {
+    code: string;
+    voice?: string;
+    speed?: number;
+}
+
 interface FlashcardProps {
     card: Card;
     deckCards: Card[]; // Needed for complex synonym checking
@@ -13,13 +19,23 @@ interface FlashcardProps {
     // Stats (optional display)
     progress?: string;
     className?: string;
-    languageCode?: string;
+    ttsSettings?: TTSSettings;
+    answerTts?: TTSSettings;
 }
 
-export function Flashcard({ card, deckCards, onNext, progress, className, languageCode }: FlashcardProps) {
+export function Flashcard({ card, deckCards, onNext, progress, className, ttsSettings, answerTts }: FlashcardProps) {
     const [input, setInput] = useState('');
     const [result, setResult] = useState<AnswerResult | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+
+    // Local TTS overrides for runtime adjustment
+    const [localPromptTts, setLocalPromptTts] = useState<TTSSettings | undefined>(ttsSettings);
+    const [localAnswerTts, setLocalAnswerTts] = useState<TTSSettings | undefined>(answerTts);
+
+    // Sync local state if props change (though typically they are static during session)
+    useEffect(() => { setLocalPromptTts(ttsSettings); }, [ttsSettings]);
+    useEffect(() => { setLocalAnswerTts(answerTts); }, [answerTts]);
+
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Focus input on mount and when card changes
@@ -64,7 +80,8 @@ export function Flashcard({ card, deckCards, onNext, progress, className, langua
     }, [result, onNext]);
 
     const playAudio = async () => {
-        if (!languageCode || isPlaying) return;
+        // Use local overrides
+        if (!localPromptTts?.code || isPlaying) return;
 
         try {
             setIsPlaying(true);
@@ -73,7 +90,9 @@ export function Flashcard({ card, deckCards, onNext, progress, className, langua
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     text: card.prompt,
-                    languageCode: languageCode
+                    languageCode: localPromptTts.code,
+                    voiceName: localPromptTts.voice,
+                    speakingRate: localPromptTts.speed
                 })
             });
 
@@ -92,12 +111,199 @@ export function Flashcard({ card, deckCards, onNext, progress, className, langua
         }
     };
 
+    // --- Voice Fetching for Runtime Settings ---
+    const [availablePromptVoices, setAvailablePromptVoices] = useState<{ name: string, ssmlGender: string }[]>([]);
+    const [availableAnswerVoices, setAvailableAnswerVoices] = useState<{ name: string, ssmlGender: string }[]>([]);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const settingsRef = useRef<HTMLDivElement>(null);
+
+    // Close settings on click outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+                setSettingsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Fetch voices when settings open
+    useEffect(() => {
+        if (!settingsOpen) return;
+
+        const fetchV = async (code: string, setter: any) => {
+            try {
+                const res = await fetch(`/api/tts/voices?languageCode=${code}`);
+                const data = await res.json();
+                if (data.voices) setter(data.voices);
+            } catch (e) { console.error(e); }
+        };
+
+        if (localPromptTts?.code && availablePromptVoices.length === 0) fetchV(localPromptTts.code, setAvailablePromptVoices);
+        if (localAnswerTts?.code && availableAnswerVoices.length === 0) fetchV(localAnswerTts.code, setAvailableAnswerVoices);
+
+    }, [settingsOpen, localPromptTts?.code, localAnswerTts?.code]);
+
+    const updateSettings = (type: 'prompt' | 'answer', field: 'voice' | 'speed', value: string | number) => {
+        if (type === 'prompt') {
+            setLocalPromptTts(prev => prev ? ({ ...prev, [field]: value }) : undefined);
+        } else {
+            setLocalAnswerTts(prev => prev ? ({ ...prev, [field]: value }) : undefined);
+        }
+    };
+
+    const [playingSample, setPlayingSample] = useState<string | null>(null);
+
+    const playVoiceSample = async (voiceName: string, langCode: string, speed: number) => {
+        if (playingSample) return;
+        setPlayingSample(voiceName);
+
+        // Simple localized sample texts
+        const samples: Record<string, string> = {
+            'de-DE': 'Hallo, so klinge ich.',
+            'it-IT': 'Ciao, questa è la mia voce.',
+            'en-US': 'Hello, this is my voice.',
+            'fr-FR': 'Bonjour, voici ma voix.',
+            'es-ES': 'Hola, esta es mi voz.'
+        };
+
+        const text = samples[langCode] || 'Test voice sample.';
+
+        try {
+            const res = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text,
+                    languageCode: langCode,
+                    voiceName,
+                    speakingRate: speed
+                })
+            });
+            const data = await res.json();
+            if (data.audioContent) {
+                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+                audio.onended = () => setPlayingSample(null);
+                audio.onerror = () => setPlayingSample(null);
+                await audio.play();
+            } else {
+                setPlayingSample(null);
+            }
+        } catch (e) {
+            console.error(e);
+            setPlayingSample(null);
+        }
+    };
+
     return (
         <div className={cn("w-full max-w-4xl mx-auto flex flex-col min-h-[60vh]", className)}>
 
             {/* Top Bar: Progress & Title */}
-            <div className="flex justify-between items-center text-sm text-zinc-400 mb-12">
+            <div className="flex justify-between items-center text-sm text-zinc-400 mb-12 relative">
                 <div className="font-medium tracking-wide">VOCITRAINER</div>
+
+                {/* Runtime TTS Settings Trigger */}
+                <div className="flex items-center gap-4 relative" ref={settingsRef}>
+                    <button
+                        onClick={() => setSettingsOpen(!settingsOpen)}
+                        className={cn("p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors", settingsOpen && "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100")}
+                        title="Voice Settings"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+
+                    {settingsOpen && (
+                        <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl p-4 z-50 text-left">
+                            <h4 className="text-sm font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Audio Settings</h4>
+
+                            {/* Prompt Settings */}
+                            {localPromptTts && (
+                                <div className="mb-4">
+                                    <div className="flex justify-between mb-1">
+                                        <label className="text-xs font-medium text-zinc-500 uppercase">Question (De)</label>
+                                    </div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <select
+                                            className="w-full text-sm p-2 rounded bg-zinc-50 dark:bg-zinc-800 border-none"
+                                            value={localPromptTts.voice || ''}
+                                            onChange={(e) => updateSettings('prompt', 'voice', e.target.value)}
+                                        >
+                                            <option value="">Default Voice</option>
+                                            {availablePromptVoices.map(v => (
+                                                <option key={v.name} value={v.name}>{v.name.split('-').slice(2).join('-')} ({v.ssmlGender})</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={() => localPromptTts.voice && playVoiceSample(localPromptTts.voice, localPromptTts.code, localPromptTts.speed || 1.0)}
+                                            disabled={!localPromptTts.voice || playingSample !== null}
+                                            className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 transition-colors disabled:opacity-50"
+                                            title="Play Sample"
+                                        >
+                                            {playingSample === localPromptTts.voice ? (
+                                                <span className="block w-4 h-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-zinc-400">Speed:</span>
+                                        <input
+                                            type="range" min="0.5" max="2.0" step="0.25"
+                                            value={localPromptTts.speed || 1.0}
+                                            onChange={(e) => updateSettings('prompt', 'speed', parseFloat(e.target.value))}
+                                            className="flex-1 h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
+                                        />
+                                        <span className="text-xs font-mono w-8 text-right">{localPromptTts.speed || 1.0}x</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Answer Settings */}
+                            {localAnswerTts && (
+                                <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                                    <label className="text-xs font-medium text-zinc-500 uppercase mb-1 block">Answer (It)</label>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <select
+                                            className="w-full text-sm p-2 rounded bg-zinc-50 dark:bg-zinc-800 border-none"
+                                            value={localAnswerTts.voice || ''}
+                                            onChange={(e) => updateSettings('answer', 'voice', e.target.value)}
+                                        >
+                                            <option value="">Default Voice</option>
+                                            {availableAnswerVoices.map(v => (
+                                                <option key={v.name} value={v.name}>{v.name.split('-').slice(2).join('-')} ({v.ssmlGender})</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={() => localAnswerTts.voice && playVoiceSample(localAnswerTts.voice, localAnswerTts.code, localAnswerTts.speed || 1.0)}
+                                            disabled={!localAnswerTts.voice || playingSample !== null}
+                                            className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 transition-colors disabled:opacity-50"
+                                            title="Play Sample"
+                                        >
+                                            {playingSample === localAnswerTts.voice ? (
+                                                <span className="block w-4 h-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-zinc-400">Speed:</span>
+                                        <input
+                                            type="range" min="0.5" max="2.0" step="0.25"
+                                            value={localAnswerTts.speed || 1.0}
+                                            onChange={(e) => updateSettings('answer', 'speed', parseFloat(e.target.value))}
+                                            className="flex-1 h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
+                                        />
+                                        <span className="text-xs font-mono w-8 text-right">{localAnswerTts.speed || 1.0}x</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 <div>{progress}</div>
             </div>
 
@@ -116,7 +322,7 @@ export function Flashcard({ card, deckCards, onNext, progress, className, langua
                                 </span>
                             )}
                         </h1>
-                        {languageCode && (
+                        {localPromptTts?.code && (
                             <button
                                 onClick={playAudio}
                                 disabled={isPlaying}
@@ -170,7 +376,7 @@ export function Flashcard({ card, deckCards, onNext, progress, className, langua
 
                 {/* Feedback Section */}
                 {result && (
-                    <FeedbackDisplay card={card} result={result} userAnswer={input} />
+                    <FeedbackDisplay card={card} result={result} userAnswer={input} ttsSettings={localAnswerTts} />
                 )}
 
             </div>

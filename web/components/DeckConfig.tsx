@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ArrowRightLeft, Check, Settings2 } from 'lucide-react';
+import { ArrowRightLeft, Check, Settings2, Play, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DeckConfigProps {
@@ -19,9 +19,14 @@ export interface DeckConfig {
         frequency: string[];
     };
     languages: {
-        prompt: string;
-        answer: string;
+        prompt: { code: string, voice?: string, speed?: number };
+        answer: { code: string, voice?: string, speed?: number };
     };
+}
+
+interface Voice {
+    name: string;
+    ssmlGender: string;
 }
 
 const NIVEAUS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -41,9 +46,125 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
     const [selectedNiveaus, setSelectedNiveaus] = useState<string[]>(NIVEAUS);
     const [selectedFreqs, setSelectedFreqs] = useState<string[]>(FREQUENCIES);
 
-    // Default languages
+    // Detailed Language State
     const [promptLang, setPromptLang] = useState('de-DE');
+    const [promptVoice, setPromptVoice] = useState<string>('');
+    const [promptSpeed, setPromptSpeed] = useState<number>(1.0);
+    const [promptVoices, setPromptVoices] = useState<Voice[]>([]);
+
     const [answerLang, setAnswerLang] = useState('it-IT');
+    const [answerVoice, setAnswerVoice] = useState<string>('');
+    const [answerSpeed, setAnswerSpeed] = useState<number>(1.0);
+    const [answerVoices, setAnswerVoices] = useState<Voice[]>([]);
+
+    const [playingSample, setPlayingSample] = useState<string | null>(null);
+
+    const playSample = async (voiceName: string, langCode: string, speed: number) => {
+        if (playingSample) return;
+        setPlayingSample(voiceName);
+
+        // Simple localized sample texts
+        const samples: Record<string, string> = {
+            'de-DE': 'Hallo, so klinge ich.',
+            'it-IT': 'Ciao, questa è la mia voce.',
+            'en-US': 'Hello, this is my voice.',
+            'fr-FR': 'Bonjour, voici ma voix.',
+            'es-ES': 'Hola, esta es mi voz.'
+        };
+
+        const text = samples[langCode] || 'Test voice sample.';
+
+        try {
+            const res = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text,
+                    languageCode: langCode,
+                    voiceName,
+                    speakingRate: speed
+                })
+            });
+            const data = await res.json();
+            if (data.audioContent) {
+                const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+                audio.onended = () => setPlayingSample(null);
+                audio.onerror = () => setPlayingSample(null);
+                await audio.play();
+            } else {
+                setPlayingSample(null);
+            }
+        } catch (e) {
+            console.error(e);
+            setPlayingSample(null);
+        }
+    };
+
+
+
+    // User Settings State
+    const [userSettings, setUserSettings] = useState<{ voice?: string, speed?: number } | null>(null);
+
+    // Fetch User Settings
+    useEffect(() => {
+        fetch('/api/user/settings')
+            .then(res => {
+                if (res.ok) return res.json();
+                return null;
+            })
+            .then(settings => {
+                if (settings) {
+                    setUserSettings(settings);
+                    // Apply speed globally if set
+                    if (settings.speed) {
+                        setPromptSpeed(settings.speed);
+                        setAnswerSpeed(settings.speed);
+                    }
+                }
+            })
+            .catch(err => console.error("Failed to load user settings", err));
+    }, []);
+
+    // Apply User Voice Setting when Language Matches
+    useEffect(() => {
+        if (userSettings?.voice && promptLang && userSettings.voice.startsWith(promptLang)) {
+            setPromptVoice(userSettings.voice);
+        }
+    }, [promptLang, userSettings]);
+
+    useEffect(() => {
+        if (userSettings?.voice && answerLang && userSettings.voice.startsWith(answerLang)) {
+            setAnswerVoice(userSettings.voice);
+        }
+    }, [answerLang, userSettings]);
+
+    // Fetch voices helper
+    const fetchVoices = async (langCode: string, setter: (v: Voice[]) => void) => {
+        try {
+            const res = await fetch(`/api/tts/voices?languageCode=${langCode}`);
+            const data = await res.json();
+            if (data.voices) {
+                setter(data.voices);
+            } else {
+                setter([]);
+            }
+        } catch (e) {
+            console.error("Failed to fetch voices", e);
+            setter([]);
+        }
+    };
+
+    // Effect: Fetch voices when language changes
+    useEffect(() => {
+        fetchVoices(promptLang, setPromptVoices);
+        setPromptVoice(''); // Reset selection on lang change
+    }, [promptLang]);
+
+    useEffect(() => {
+        fetchVoices(answerLang, setAnswerVoices);
+        setAnswerVoice('');
+    }, [answerLang]);
+
 
     // Auto-detect defaults
     useEffect(() => {
@@ -56,18 +177,7 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
         if (deCols.length > 0) setAnswerCols(deCols);
     }, [columns]);
 
-    // Auto-detect languages based on column names
-    useEffect(() => {
-        if (promptCol.toLowerCase().includes('deutsch')) setPromptLang('de-DE');
-        else if (promptCol.toLowerCase().includes('italien')) setPromptLang('it-IT');
 
-        // Check first answer col for hint
-        if (answerCols.length > 0) {
-            const ac = answerCols[0].toLowerCase();
-            if (ac.includes('deutsch')) setAnswerLang('de-DE');
-            else if (ac.includes('italien')) setAnswerLang('it-IT');
-        }
-    }, [promptCol, answerCols]);
 
     const handleSubmit = () => {
         if (!promptCol || answerCols.length === 0) return;
@@ -80,8 +190,8 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
                 frequency: selectedFreqs
             },
             languages: {
-                prompt: promptLang,
-                answer: answerLang
+                prompt: { code: promptLang, voice: promptVoice, speed: promptSpeed },
+                answer: { code: answerLang, voice: answerVoice, speed: answerSpeed }
             }
         });
     };
@@ -94,6 +204,56 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
 
     const toggleArrayItem = (item: string, current: string[], setter: (v: string[]) => void) => {
         setter(current.includes(item) ? current.filter(i => i !== item) : [...current, item]);
+    };
+
+    const renderVoiceControls = (
+        voices: Voice[],
+        currentVoice: string,
+        setVoice: (v: string) => void,
+        currentSpeed: number,
+        setSpeed: (s: number) => void,
+        langCode: string
+    ) => {
+        if (voices.length === 0) return null;
+
+        return (
+            <div className="mt-2 flex items-center gap-3">
+                <select
+                    value={currentVoice}
+                    onChange={(e) => setVoice(e.target.value)}
+                    className="p-1.5 rounded border border-zinc-300 dark:border-zinc-700 text-xs bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 max-w-[180px] shadow-sm"
+                >
+                    <option value="">Default Voice</option>
+                    {voices.map(v => (
+                        <option key={v.name} value={v.name}>{v.name.split('-').slice(2).join('-')} ({v.ssmlGender})</option>
+                    ))}
+                </select>
+
+                <div className="flex items-center gap-1">
+                    <span className="text-xs text-zinc-400">Rate:</span>
+                    <select
+                        value={currentSpeed}
+                        onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                        className="p-1.5 rounded border border-zinc-300 dark:border-zinc-700 text-xs bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                    >
+                        {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(r => (
+                            <option key={r} value={r}>{r}x</option>
+                        ))}
+                    </select>
+                </div>
+
+                {currentVoice && (
+                    <button
+                        onClick={() => playSample(currentVoice, langCode, currentSpeed)}
+                        disabled={playingSample !== null}
+                        className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors disabled:opacity-50"
+                        title="Play Sample"
+                    >
+                        {playingSample === currentVoice ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                    </button>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -124,26 +284,14 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
                             <select
                                 value={promptCol}
                                 onChange={(e) => setPromptCol(e.target.value)}
-                                className="w-full p-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent"
+                                className="w-full p-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm"
                             >
                                 {columns.map(c => (
                                     <option key={c} value={c}>{c}</option>
                                 ))}
                             </select>
 
-                            {/* Language Selector for Prompt */}
-                            <div className="mt-2 flex items-center gap-2">
-                                <label className="text-xs text-zinc-500">Audio Language:</label>
-                                <select
-                                    value={promptLang}
-                                    onChange={(e) => setPromptLang(e.target.value)}
-                                    className="p-1 rounded border border-zinc-200 dark:border-zinc-700 text-sm bg-transparent"
-                                >
-                                    {SUPPORTED_LANGS.map(l => (
-                                        <option key={l.code} value={l.code}>{l.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+
                         </div>
 
                         <div className="flex justify-center py-2">
@@ -184,18 +332,9 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
                                 ))}
                             </div>
 
-                            {/* Language Selector for Answer */}
-                            <div className="mt-2 flex items-center gap-2">
-                                <label className="text-xs text-zinc-500">Audio Language:</label>
-                                <select
-                                    value={answerLang}
-                                    onChange={(e) => setAnswerLang(e.target.value)}
-                                    className="p-1 rounded border border-zinc-200 dark:border-zinc-700 text-sm bg-transparent"
-                                >
-                                    {SUPPORTED_LANGS.map(l => (
-                                        <option key={l.code} value={l.code}>{l.name}</option>
-                                    ))}
-                                </select>
+                            {/* Language Selector for Answer - REMOVED Language Dropdown (Fixed to Italian) */}
+                            <div className="mt-2 flex flex-col gap-2">
+                                {renderVoiceControls(answerVoices, answerVoice, setAnswerVoice, answerSpeed, setAnswerSpeed, answerLang)}
                             </div>
                         </div>
                     </div>

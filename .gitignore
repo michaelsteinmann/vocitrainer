@@ -1,0 +1,11 @@
+# Sensitive Credentials
+.env*
+google-tts-key.json
+*.json.migrated
+
+# Artifacts
+.gemini/
+
+# System
+.DS_Store
+Thumbs.db

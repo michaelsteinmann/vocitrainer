@@ -2,13 +2,12 @@ import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 import { NextResponse } from 'next/server';
 
 const client = new TextToSpeechClient({
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS || process.cwd() + '/google-tts-key.json'
 });
 
 export async function POST(request: Request) {
-    console.log("TTS Request. Creds path:", process.env.GOOGLE_APPLICATION_CREDENTIALS);
     try {
-        const { text, languageCode } = await request.json();
+        const { text, languageCode, voiceName, speakingRate } = await request.json();
 
         if (!text) {
             return NextResponse.json({ error: 'Text is required' }, { status: 400 });
@@ -17,9 +16,15 @@ export async function POST(request: Request) {
         const requestBody = {
             input: { text },
             // Select the language and SSML voice gender (optional)
-            voice: { languageCode: languageCode || 'de-DE', ssmlGender: 'NEUTRAL' as const },
+            // If voiceName is provided, use it. Otherwise fall back to languageCode default.
+            voice: voiceName
+                ? { languageCode, name: voiceName }
+                : { languageCode: languageCode || 'de-DE', ssmlGender: 'NEUTRAL' as const },
             // select the type of audio encoding
-            audioConfig: { audioEncoding: 'MP3' as const },
+            audioConfig: {
+                audioEncoding: 'MP3' as const,
+                speakingRate: speakingRate || 1.0
+            },
         };
 
         const [response] = await client.synthesizeSpeech(requestBody);

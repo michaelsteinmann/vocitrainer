@@ -1,0 +1,18 @@
+[
+    {
+        "username": "michael",
+        "password": "monopoli",
+        "settings": {
+            "voice": "it-IT-Neural2-A",
+            "speed": 1.0
+        }
+    },
+    {
+        "username": "chrigi",
+        "password": "uetikon",
+        "settings": {
+            "voice": "it-IT-Neural2-A",
+            "speed": 1.0
+        }
+    }
+]

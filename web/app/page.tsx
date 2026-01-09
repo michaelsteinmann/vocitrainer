@@ -19,7 +19,7 @@ export default function Home() {
   // Deck State
   const [deck, setDeck] = useState<Card[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [deckLanguages, setDeckLanguages] = useState<{ prompt: string, answer: string } | null>(null);
+  const [deckLanguages, setDeckLanguages] = useState<IDeckConfig['languages'] | null>(null);
 
   // Handlers
   const handleDataLoaded = (data: any[]) => {
@@ -137,7 +137,8 @@ export default function Home() {
               deckCards={deck}
               onNext={handleNextCard}
               progress={`${currentIndex + 1} / ${deck.length}`}
-              languageCode={deckLanguages?.prompt}
+              ttsSettings={deckLanguages?.prompt}
+              answerTts={deckLanguages?.answer}
             />
           </div>
         )}
