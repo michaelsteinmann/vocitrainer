@@ -1,0 +1,39 @@
+name: Deploy Web App
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'web/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USERNAME }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          port: 22
+          script: |
+            # Navigate to the project directory
+            # ADJUST THIS PATH if your repository is cloned elsewhere
+            cd /var/www/vocitrainer
+            
+            # Pull the latest changes
+            git pull origin main
+            
+            # Navigate to the web application directory
+            cd web
+            
+            # Install dependencies and build
+            npm install
+            npm run build
+            
+            # Restart the application using PM2
+            # ENSURE a PM2 process named 'vocitrainer-web' exists:
+            # pm2 start npm --name "vocitrainer-web" -- start
+            pm2 restart vocitrainer-web
