@@ -34,6 +34,6 @@ jobs:
             npm run build
             
             # Restart the application using PM2
-            # ENSURE a PM2 process named 'vocitrainer-web' exists:
-            # pm2 start npm --name "vocitrainer-web" -- start
-            pm2 restart vocitrainer-web
+            # ENSURE a PM2 process named 'vocitrainer' exists:
+            # pm2 start npm --name "vocitrainer" -- start
+            pm2 restart vocitrainer
