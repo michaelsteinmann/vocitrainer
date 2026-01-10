@@ -160,22 +160,34 @@ export function Flashcard({ card, deckCards, onNext, progress, className, ttsSet
             newSettings = { ...localAnswerTts, [field]: value } as TTSSettings;
         }
 
-        // Persist to server
-        // We need to match the structure expected by consumers.
-        // The users.json structure currently shows "settings": { "voice": ..., "speed": ... }. 
-        // But we have split prompt/answer.
-        // Let's adopt a structure: { prompt: { voice, speed }, answer: { voice, speed } }
-        // OR flatten if we only really care about the "current language" voice?
-        // User has explicit "Question (German)" and "Answer (Italian)".
-        // It's safer to store `promptVoice`, `promptSpeed`, `answerVoice`, `answerSpeed`.
+        // The users.json structure now has { germanVoice, germanSpeed, italianVoice, italianSpeed }.
+        // We map based on the language code of the setting being changed.
 
+        // Create payload based on the language being modified
+        const code = type === 'prompt' ? localPromptTts?.code : localAnswerTts?.code;
         const payload: any = {};
-        if (type === 'prompt') {
-            payload.promptVoice = field === 'voice' ? value : localPromptTts?.voice;
-            payload.promptSpeed = field === 'speed' ? value : localPromptTts?.speed;
+
+        if (code === 'de-DE') {
+            payload.germanVoice = field === 'voice' ? value : (type === 'prompt' ? localPromptTts?.voice : localAnswerTts?.voice);
+            payload.germanSpeed = field === 'speed' ? value : (type === 'prompt' ? localPromptTts?.speed : localAnswerTts?.speed);
+            // We need to fetch current values if we are only updating one. 
+            // Simplified: just send the one we are changing + current known for that lang.
+            // But simpler: just send what matches 'value' if we know the field. 
+            // Actually, the API merges. So sending just { germanVoice: "..." } is fine.
+            // But we need to be careful if we are updating speed, we don't want to wipe voice if the API replaced the object (it merges).
+            // My API implementation uses `...users[userIndex].settings, ...newSettings`, so it merges shallowly. 
+            // So safe to send partial update.
+
+            // Let's refine payload construction:
+            if (field === 'voice') payload.germanVoice = value;
+            if (field === 'speed') payload.germanSpeed = value;
+
+        } else if (code === 'it-IT') {
+            if (field === 'voice') payload.italianVoice = value;
+            if (field === 'speed') payload.italianSpeed = value;
         } else {
-            payload.answerVoice = field === 'voice' ? value : localAnswerTts?.voice;
-            payload.answerSpeed = field === 'speed' ? value : localAnswerTts?.speed;
+            console.warn("Saving settings for languages other than DE/IT is not yet supported.");
+            return;
         }
 
         // Actually, to be safe, we should probably send what we have.

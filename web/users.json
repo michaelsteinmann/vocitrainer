@@ -3,24 +3,20 @@
         "username": "michael",
         "password": "monopoli",
         "settings": {
-            "voice": "it-IT-Neural2-A",
-            "speed": 1,
-            "answerVoice": "de-DE-Chirp3-HD-Enceladus",
-            "answerSpeed": 1,
-            "promptVoice": "it-IT-Chirp3-HD-Achird",
-            "promptSpeed": 1
+            "germanVoice": "de-DE-Chirp3-HD-Achernar",
+            "germanSpeed": 1,
+            "italianVoice": "it-IT-Chirp3-HD-Achird",
+            "italianSpeed": 1
         }
     },
     {
         "username": "chrigi",
         "password": "uetikon",
         "settings": {
-            "voice": "it-IT-Neural2-A",
-            "speed": 1,
-            "answerVoice": "de-DE-Chirp3-HD-Enceladus",
-            "answerSpeed": 1,
-            "promptVoice": "it-IT-Chirp3-HD-Achird",
-            "promptSpeed": 1
+            "germanVoice": "de-DE-Chirp3-HD-Enceladus",
+            "germanSpeed": 1,
+            "italianVoice": "it-IT-Chirp3-HD-Achird",
+            "italianSpeed": 1
         }
     }
 ]

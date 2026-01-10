@@ -104,8 +104,8 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
 
     // User Settings State
     const [userSettings, setUserSettings] = useState<{
-        promptVoice?: string, promptSpeed?: number,
-        answerVoice?: string, answerSpeed?: number
+        germanVoice?: string, germanSpeed?: number,
+        italianVoice?: string, italianSpeed?: number
     } | null>(null);
 
     // Fetch User Settings
@@ -118,11 +118,6 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
             .then(settings => {
                 if (settings) {
                     setUserSettings(settings);
-                    // Apply persisted settings
-                    if (settings.promptVoice) setPromptVoice(settings.promptVoice);
-                    if (settings.promptSpeed) setPromptSpeed(settings.promptSpeed);
-                    if (settings.answerVoice) setAnswerVoice(settings.answerVoice);
-                    if (settings.answerSpeed) setAnswerSpeed(settings.answerSpeed);
                 }
             })
             .catch(err => console.error("Failed to load user settings", err));
@@ -138,22 +133,34 @@ export function DeckConfig({ columns, totalRows, onConfirm }: DeckConfigProps) {
     // If they switch prompt lang from DE to ES, the saved "DE-Voice" shouldn't be selected.
     // So we should check if the saved voice matches the current language code.
 
+    // Sync Prompt Voice with Settings
     useEffect(() => {
-        if (userSettings?.promptVoice && userSettings.promptVoice.startsWith(promptLang)) {
-            setPromptVoice(userSettings.promptVoice);
+        if (!userSettings) return;
+        if (promptLang === 'de-DE' && userSettings.germanVoice) {
+            setPromptVoice(userSettings.germanVoice);
+            if (userSettings.germanSpeed) setPromptSpeed(userSettings.germanSpeed);
+        } else if (promptLang === 'it-IT' && userSettings.italianVoice) {
+            setPromptVoice(userSettings.italianVoice);
+            if (userSettings.italianSpeed) setPromptSpeed(userSettings.italianSpeed);
         } else {
-            // If language changed and saved voice doesn't match, reset?
-            // Or better: Just don't set it, let it be default.
-            if (promptLang !== 'de-DE') setPromptVoice('');
-            // Actually `fetchVoices` resets it to '' anyway in the other effect.
+            // Reset or keep default? Let's clear if no match found in settings to avoid carrying over wrong lang voice
+            setPromptVoice('');
+            setPromptSpeed(1.0);
         }
     }, [promptLang, userSettings]);
 
+    // Sync Answer Voice with Settings
     useEffect(() => {
-        if (userSettings?.answerVoice && userSettings.answerVoice.startsWith(answerLang)) {
-            setAnswerVoice(userSettings.answerVoice);
+        if (!userSettings) return;
+        if (answerLang === 'de-DE' && userSettings.germanVoice) {
+            setAnswerVoice(userSettings.germanVoice);
+            if (userSettings.germanSpeed) setAnswerSpeed(userSettings.germanSpeed);
+        } else if (answerLang === 'it-IT' && userSettings.italianVoice) {
+            setAnswerVoice(userSettings.italianVoice);
+            if (userSettings.italianSpeed) setAnswerSpeed(userSettings.italianSpeed);
         } else {
-            // similar logic
+            setAnswerVoice('');
+            setAnswerSpeed(1.0);
         }
     }, [answerLang, userSettings]);
 

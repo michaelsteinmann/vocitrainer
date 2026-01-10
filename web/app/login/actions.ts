@@ -27,8 +27,10 @@ export async function login(prevState: any, formData: FormData) {
                     username,
                     password: 'aranno',
                     settings: {
-                        voice: 'it-IT-Neural2-A',
-                        speed: 1.0
+                        italianVoice: 'it-IT-Chirp3-HD-Achird',
+                        italianSpeed: 1.0,
+                        germanVoice: 'de-DE-Chirp3-HD-Enceladus',
+                        germanSpeed: 1.0
                     }
                 });
             }

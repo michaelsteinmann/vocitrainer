@@ -13,7 +13,9 @@ export async function GET() {
         const fileContent = await fs.readFile(USERS_FILE, 'utf-8');
         const users = JSON.parse(fileContent);
         const user = users.find((u: any) => u.username === username);
-
+        if (user) {
+            return NextResponse.json(user.settings || {});
+        }
 
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
@@ -30,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     try {
-        const { promptVoice, promptSpeed, answerVoice, answerSpeed } = await request.json();
+        const { germanVoice, germanSpeed, italianVoice, italianSpeed } = await request.json();
         const fileContent = await fs.readFile(USERS_FILE, 'utf-8');
         const users = JSON.parse(fileContent);
 
@@ -39,10 +41,10 @@ export async function POST(request: Request) {
             // Merge new settings with existing ones
             users[userIndex].settings = {
                 ...users[userIndex].settings,
-                ...(promptVoice && { promptVoice }),
-                ...(promptSpeed && { promptSpeed }),
-                ...(answerVoice && { answerVoice }),
-                ...(answerSpeed && { answerSpeed })
+                ...(germanVoice && { germanVoice }),
+                ...(germanSpeed && { germanSpeed }),
+                ...(italianVoice && { italianVoice }),
+                ...(italianSpeed && { italianSpeed })
             };
 
             await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
