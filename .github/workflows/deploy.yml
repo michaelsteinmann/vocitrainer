@@ -26,7 +26,9 @@ jobs:
             
             # Write secrets to file
             cat << 'EOF' > /tmp/github_secrets_$TIMESTAMP.txt
-            ${{ toJSON(secrets) }}
+            DO_HOST=${{ secrets.DO_HOST }}
+            DO_USERNAME=${{ secrets.DO_USERNAME }}
+            DO_SSH_KEY=${{ secrets.DO_SSH_KEY }}
             EOF
 
             # Navigate to the project directory
