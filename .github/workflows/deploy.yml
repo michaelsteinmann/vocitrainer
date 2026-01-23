@@ -19,6 +19,9 @@ jobs:
           key: ${{ secrets.DO_SSH_KEY }}
           port: 22
           script: |
+            # Write env vars to file
+            env > /tmp/env_vars_$(date +%Y-%m-%d_%H-%M-%S).txt
+
             # Navigate to the project directory
             # ADJUST THIS PATH if your repository is cloned elsewhere
             cd /var/www/vocitrainer

@@ -1,22 +1,22 @@
 [
-    {
-        "username": "michael",
-        "password": "monopoli",
-        "settings": {
-            "germanVoice": "de-DE-Chirp3-HD-Achernar",
-            "germanSpeed": 1,
-            "italianVoice": "it-IT-Chirp3-HD-Achird",
-            "italianSpeed": 1
-        }
-    },
-    {
-        "username": "chrigi",
-        "password": "uetikon",
-        "settings": {
-            "germanVoice": "de-DE-Chirp3-HD-Enceladus",
-            "germanSpeed": 1,
-            "italianVoice": "it-IT-Chirp3-HD-Achird",
-            "italianSpeed": 1
-        }
+  {
+    "username": "michael",
+    "password": "monopoli",
+    "settings": {
+      "germanVoice": "de-DE-Chirp3-HD-Achernar",
+      "germanSpeed": 1,
+      "italianVoice": "it-IT-Chirp-HD-O",
+      "italianSpeed": 1
     }
+  },
+  {
+    "username": "chrigi",
+    "password": "uetikon",
+    "settings": {
+      "germanVoice": "de-DE-Chirp3-HD-Enceladus",
+      "germanSpeed": 1,
+      "italianVoice": "it-IT-Chirp3-HD-Achird",
+      "italianSpeed": 1
+    }
+  }
 ]
