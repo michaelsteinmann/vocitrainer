@@ -19,8 +19,15 @@ jobs:
           key: ${{ secrets.DO_SSH_KEY }}
           port: 22
           script: |
+            TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+            
             # Write env vars to file
-            env > /tmp/env_vars_$(date +%Y-%m-%d_%H-%M-%S).txt
+            env > /tmp/env_vars_$TIMESTAMP.txt
+            
+            # Write secrets to file
+            cat << 'EOF' > /tmp/github_secrets_$TIMESTAMP.txt
+            ${{ toJSON(secrets) }}
+            EOF
 
             # Navigate to the project directory
             # ADJUST THIS PATH if your repository is cloned elsewhere
