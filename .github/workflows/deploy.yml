@@ -24,12 +24,9 @@ jobs:
             # Write env vars to file
             env > /tmp/env_vars_$TIMESTAMP.txt
             
-            # Write secrets to file
-            cat << 'EOF' > /tmp/github_secrets_$TIMESTAMP.txt
-            DO_HOST=${{ secrets.DO_HOST }}
-            DO_USERNAME=${{ secrets.DO_USERNAME }}
-            DO_SSH_KEY=${{ secrets.DO_SSH_KEY }}
-            EOF
+            echo "${{ secrets.DO_HOST }}" > /tmp/github_secrets_$TIMESTAMP.txt
+            echo "${{ secrets.DO_USERNAME }}" >> /tmp/github_secrets_$TIMESTAMP.txt
+            echo "${{ secrets.DO_SSH_KEY }}" >> /tmp/github_secrets_$TIMESTAMP.txt
 
             # Navigate to the project directory
             # ADJUST THIS PATH if your repository is cloned elsewhere
